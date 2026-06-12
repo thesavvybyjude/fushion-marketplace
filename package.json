@@ -1,0 +1,29 @@
+{
+  "name": "fushion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fushion — Multi-vendor E-commerce Marketplace. Every market. One place.",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "clean": "turbo clean",
+    "db:generate": "pnpm --filter @fushion/api prisma generate",
+    "db:migrate": "pnpm --filter @fushion/api prisma migrate dev",
+    "db:migrate:prod": "pnpm --filter @fushion/api prisma migrate deploy",
+    "db:seed": "pnpm --filter @fushion/api prisma db seed",
+    "db:studio": "pnpm --filter @fushion/api prisma studio",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.5.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "@fushion/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src/ --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prisma": "prisma",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/helmet": "^12.0.0",
+    "@fastify/rate-limit": "^10.0.0",
+    "@fastify/swagger": "^9.0.0",
+    "@fastify/swagger-ui": "^5.0.0",
+    "@prisma/client": "^6.0.0",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.0",
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.0",
+    "@fushion/shared": "workspace:*",
+    "ioredis": "^5.4.0",
+    "jsonwebtoken": "^9.0.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0",
+    "typesense": "^1.8.0",
+    "uuid": "^10.0.0",
+    "zod": "^3.23.0",
+    "resend": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.0.0",
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

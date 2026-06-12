@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Styles ───────────────────────────────────────── */
+@layer base {
+  :root {
+    --ember: #E8642A;
+    --coal: #1A0E08;
+    --market-green: #2C5F4A;
+    --gold-dust: #C4A35A;
+    --paper: #F9F7F3;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-paper text-coal font-sans;
+  }
+
+  /* ─── Typography defaults ─────────────────────────────── */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-coal;
+  }
+
+  h1 { @apply text-2xl md:text-4xl; }
+  h2 { @apply text-xl md:text-3xl; }
+  h3 { @apply text-lg md:text-2xl; }
+
+  /* ─── Focus styles (accessibility) ────────────────────── */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ember;
+  }
+
+  /* ─── Selection colour ────────────────────────────────── */
+  ::selection {
+    @apply bg-ember/20 text-coal;
+  }
+}
+
+/* ─── Custom utilities ──────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Shimmer loading animation gradient */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      theme('colors.paper.DEFAULT') 0%,
+      theme('colors.paper.300') 50%,
+      theme('colors.paper.DEFAULT') 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  /* Nigerian Naira price formatting */
+  .price {
+    @apply font-bold text-ember;
+  }
+
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ─── Scrollbar Styling ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-paper;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-coal/20 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-coal/40;
+}
