@@ -58,6 +58,23 @@ enum VendorStatus {
   SUSPENDED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum ShipmentStatus {
+  PENDING
+  LABEL_CREATED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  FAILED_DELIVERY
+}
+
 // ─── USERS ───────────────────────────────────────────────
 
 model User {
@@ -287,6 +304,8 @@ model Order {
 
   items   OrderItem[]
   payment Payment?
+  invoice Invoice?
+  shipment Shipment?
 
   @@index([userId])
   @@index([orderNumber])
@@ -341,6 +360,65 @@ model Payment {
   @@index([paystackRef])
   @@index([status])
   @@map("payments")
+}
+
+// ─── B2B & INVOICING ─────────────────────────────────────
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  amount        Decimal       @db.Decimal(12, 2)
+  status        InvoiceStatus @default(ISSUED)
+  dueDate       DateTime
+  paidAt        DateTime?
+  pdfUrl        String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("invoices")
+}
+
+model PurchaseOrder {
+  id            String   @id @default(uuid())
+  poNumber      String   @unique
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  documentUrl   String
+  status        String   @default("PENDING_REVIEW")
+  reviewedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@map("purchase_orders")
+}
+
+// ─── LOGISTICS ───────────────────────────────────────────
+
+model Shipment {
+  id              String         @id @default(uuid())
+  orderId         String         @unique
+  order           Order          @relation(fields: [orderId], references: [id])
+  trackingNumber  String?        @unique
+  provider        String         @default("GIG_LOGISTICS")
+  status          ShipmentStatus @default(PENDING)
+  waybillUrl      String?
+  estimatedArrival DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([trackingNumber])
+  @@index([status])
+  @@map("shipments")
 }
 
 // ─── PAYOUTS ─────────────────────────────────────────────

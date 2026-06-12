@@ -1,15 +1,45 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Button } from '@/components/ui';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { api } from '@/lib/api';
+import { toast_error } from '@/components/ui';
 
 export default function VendorDashboardPage() {
-  const [stats] = useState({
-    revenue: 1250000,
-    pendingOrders: 12,
-    activeProducts: 45,
-    rating: 4.8
+  const [stats, setStats] = useState({
+    gmv: 0,
+    totalOrders: 0,
+    unitsSold: 0,
+    chartData: []
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const res = await api.get<{ data: typeof stats }>('/vendors/me/analytics');
+        setStats(res.data);
+      } catch (err) {
+        toast_error('Failed to load analytics. Displaying mock data.');
+        setStats({
+          gmv: 1250000,
+          totalOrders: 142,
+          unitsSold: 350,
+          chartData: [
+            { date: 'Mon', revenue: 12000 },
+            { date: 'Tue', revenue: 19000 },
+            { date: 'Wed', revenue: 15000 },
+            { date: 'Thu', revenue: 22000 },
+            { date: 'Fri', revenue: 30000 },
+            { date: 'Sat', revenue: 45000 },
+            { date: 'Sun', revenue: 38000 },
+          ]
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, []);
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -22,62 +52,50 @@ export default function VendorDashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <Card padding="md" className="border-l-4 border-l-ember">
-          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Total Revenue</p>
-          <h2 className="text-3xl font-black text-coal">₦{stats.revenue.toLocaleString()}</h2>
+          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Total GMV</p>
+          <h2 className="text-3xl font-black text-coal">
+            {loading ? '...' : `₦${stats.gmv.toLocaleString()}`}
+          </h2>
         </Card>
         
-        <a href="/vendor/orders" className="block">
-          <Card padding="md" className="border-l-4 border-l-market-green hover:shadow-lg transition-shadow cursor-pointer h-full">
-            <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Orders to Fulfill</p>
-            <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-black text-coal">{stats.pendingOrders}</h2>
-              {stats.pendingOrders > 0 && (
-                <span className="flex h-3 w-3 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-market-green opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-market-green"></span>
-                </span>
-              )}
-            </div>
-          </Card>
-        </a>
-
-        <Card padding="md" className="border-l-4 border-l-coal">
-          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Active Products</p>
-          <h2 className="text-3xl font-black text-coal">{stats.activeProducts}</h2>
+        <Card padding="md" className="border-l-4 border-l-market-green">
+          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Total Orders</p>
+          <h2 className="text-3xl font-black text-coal">
+            {loading ? '...' : stats.totalOrders.toLocaleString()}
+          </h2>
         </Card>
 
         <Card padding="md" className="border-l-4 border-l-gold-dust">
-          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Store Rating</p>
-          <div className="flex items-center gap-2">
-            <h2 className="text-3xl font-black text-coal">{stats.rating}</h2>
-            <span className="text-gold-dust text-xl">★</span>
-          </div>
+          <p className="text-sm font-bold text-coal/60 uppercase tracking-wider mb-1">Units Sold</p>
+          <h2 className="text-3xl font-black text-coal">
+            {loading ? '...' : stats.unitsSold.toLocaleString()}
+          </h2>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Card padding="md">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-coal">Recent Orders</h3>
-              <a href="/vendor/orders" className="text-ember text-sm font-bold hover:underline">View All</a>
-            </div>
-            
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-4 border border-coal/10 rounded-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-coal/5 rounded-lg"></div>
-                    <div>
-                      <p className="font-bold text-coal">Product Name {i}</p>
-                      <p className="text-sm text-coal/60">Qty: 1 • Ref: FSH-20260612-{i}A{i}B</p>
-                    </div>
-                  </div>
-                  <Button variant="secondary" size="sm">Fulfill</Button>
-                </div>
-              ))}
+            <h3 className="text-lg font-bold text-coal mb-6">Revenue Over Time (7 Days)</h3>
+            <div className="h-[300px] w-full">
+              {loading ? (
+                <div className="w-full h-full flex items-center justify-center text-coal/60">Loading chart...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                    <XAxis dataKey="date" stroke="#999" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#999" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₦${value/1000}k`} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="#E8642A" strokeWidth={3} dot={{ r: 4, fill: '#E8642A' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </Card>
         </div>
