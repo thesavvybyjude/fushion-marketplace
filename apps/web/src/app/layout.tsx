@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { DM_Sans } from 'next/font/google';
 import '@/styles/globals.css';
+import { PwaRegister } from '@/components/pwa-register';
+import { ToastContainer } from '@/components/ui';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  weight: ['400', '500', '700', '900'],
   variable: '--font-dm-sans',
   display: 'swap',
 });
@@ -18,6 +20,8 @@ export const metadata: Metadata = {
     'Nigeria\'s multi-vendor marketplace. Shop electronics, fashion, home goods and more from trusted vendors. Every market. One place.',
   keywords: ['fushion', 'marketplace', 'nigeria', 'online shopping', 'multi-vendor', 'ecommerce'],
   authors: [{ name: 'Fushion' }],
+  manifest: '/manifest.json',
+  themeColor: '#E8642A',
   openGraph: {
     type: 'website',
     locale: 'en_NG',
@@ -50,8 +54,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={dmSans.variable}>
-      <body className="min-h-screen bg-paper text-coal antialiased">
+      <body className="antialiased min-h-screen flex flex-col bg-paper scroll-smooth">
+        <PwaRegister />
         {children}
+        <ToastContainer />
       </body>
     </html>
   );
