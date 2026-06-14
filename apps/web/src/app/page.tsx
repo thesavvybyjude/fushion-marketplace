@@ -2,13 +2,14 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { Button, ProductCard } from '@/components/ui';
+import { Laptop, Shirt, Home as HomeIcon, Sparkles, Lock, Truck, BadgeCheck } from 'lucide-react';
 
 // In a real app, this would be fetched from the API
 const MOCK_CATEGORIES = [
-  { id: '1', name: 'Electronics', slug: 'electronics', icon: '💻' },
-  { id: '2', name: 'Fashion', slug: 'fashion', icon: '👕' },
-  { id: '3', name: 'Home & Living', slug: 'home', icon: '🏠' },
-  { id: '4', name: 'Health & Beauty', slug: 'health', icon: '✨' },
+  { id: '1', name: 'Electronics', slug: 'electronics', icon: <Laptop size={32} strokeWidth={2} /> },
+  { id: '2', name: 'Fashion', slug: 'fashion', icon: <Shirt size={32} strokeWidth={2} /> },
+  { id: '3', name: 'Home & Living', slug: 'home', icon: <HomeIcon size={32} strokeWidth={2} /> },
+  { id: '4', name: 'Health & Beauty', slug: 'health', icon: <Sparkles size={32} strokeWidth={2} /> },
 ];
 
 const MOCK_PRODUCTS = [
@@ -65,11 +66,11 @@ export default function Home() {
               <div className="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-bold tracking-wider text-market-green mb-6 border border-white/10 backdrop-blur-sm">
                 NIGERIA'S PREMIER MARKETPLACE
               </div>
-              <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+              <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-white">
                 Every market.<br/>
-                <span className="text-ember">One place.</span>
+                <span className="text-white">One place.</span>
               </h1>
-              <p className="text-lg text-white/70 mb-8 max-w-xl mx-auto md:mx-0">
+              <p className="text-lg text-white/90 mb-8 max-w-xl mx-auto md:mx-0">
                 Shop from thousands of verified local vendors across Nigeria. Secure payments, fast delivery, authentic products.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
@@ -92,7 +93,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {MOCK_CATEGORIES.map(category => (
               <a key={category.id} href={`/category/${category.slug}`} className="bg-white p-6 rounded-2xl border border-coal/5 text-center hover:shadow-lg transition-all hover:-translate-y-1 group">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{category.icon}</div>
+                <div className="mb-4 flex justify-center group-hover:scale-110 transition-transform text-coal">{category.icon}</div>
                 <h3 className="font-bold text-coal">{category.name}</h3>
               </a>
             ))}
@@ -118,7 +119,7 @@ export default function Home() {
                 slug={product.slug}
                 price={product.price}
                 vendorName={product.vendorName}
-                imageUrl={product.image}
+                image={product.image}
                 rating={product.rating}
               />
             ))}
@@ -129,17 +130,17 @@ export default function Home() {
         <section className="bg-coal/5 py-16 px-4 mt-12">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
-              <div className="w-16 h-16 bg-market-green/20 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+              <div className="w-16 h-16 bg-market-green/20 text-market-green rounded-full flex items-center justify-center mx-auto mb-4"><Lock size={32} strokeWidth={2} /></div>
               <h3 className="font-bold text-coal mb-2">Secure Payments</h3>
               <p className="text-sm text-coal/70">Powered by Paystack. Your money is safe until you receive your order.</p>
             </div>
             <div className="p-6">
-              <div className="w-16 h-16 bg-ember/20 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚚</div>
+              <div className="w-16 h-16 bg-ember/20 text-ember rounded-full flex items-center justify-center mx-auto mb-4"><Truck size={32} strokeWidth={2} /></div>
               <h3 className="font-bold text-coal mb-2">Fast Delivery</h3>
               <p className="text-sm text-coal/70">Nationwide delivery within 2-5 working days across Nigeria.</p>
             </div>
             <div className="p-6">
-              <div className="w-16 h-16 bg-gold-dust/20 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✨</div>
+              <div className="w-16 h-16 bg-gold-dust/20 text-gold-dust rounded-full flex items-center justify-center mx-auto mb-4"><BadgeCheck size={32} strokeWidth={2} /></div>
               <h3 className="font-bold text-coal mb-2">Verified Vendors</h3>
               <p className="text-sm text-coal/70">Every vendor undergoes strict verification before they can sell.</p>
             </div>
