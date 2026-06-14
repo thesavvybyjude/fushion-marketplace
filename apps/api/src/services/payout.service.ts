@@ -37,7 +37,7 @@ export class PayoutService {
       })
     });
 
-    const recipientData = await recipientRes.json();
+    const recipientData = (await recipientRes.json()) as any;
     if (!recipientData.status) {
       throw new Error(`Failed to create recipient: ${recipientData.message}`);
     }
@@ -59,7 +59,7 @@ export class PayoutService {
       })
     });
 
-    const transferData = await transferRes.json();
+    const transferData = (await transferRes.json()) as any;
     
     if (!transferData.status) {
       throw new Error(`Transfer failed: ${transferData.message}`);

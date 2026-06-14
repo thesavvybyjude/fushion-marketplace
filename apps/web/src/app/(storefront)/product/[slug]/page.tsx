@@ -101,7 +101,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           {/* Product Info */}
           <div className="flex flex-col">
             <div className="mb-2 flex items-center gap-2">
-              <Badge variant="market-green">Verified Vendor</Badge>
+              <Badge variant="green">Verified Vendor</Badge>
               <a href={`/vendor/${MOCK_PRODUCT.vendorId}`} className="text-sm font-bold text-coal/80 hover:text-ember hover:underline">
                 {MOCK_PRODUCT.vendorName}
               </a>
