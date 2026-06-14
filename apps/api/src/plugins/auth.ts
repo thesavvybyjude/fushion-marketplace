@@ -15,6 +15,7 @@ declare module 'fastify' {
   }
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireAuth: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireRole: (...roles: string[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
@@ -54,6 +55,11 @@ export const authPlugin = fp(
           error: { code: 'INVALID_TOKEN', message: 'Invalid access token' },
         });
       }
+    });
+
+    // Alias: requireAuth is the same as authenticate
+    fastify.decorate('requireAuth', async (request: FastifyRequest, reply: FastifyReply) => {
+      return fastify.authenticate(request, reply);
     });
 
     // Role-based access control decorator

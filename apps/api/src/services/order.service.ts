@@ -47,6 +47,7 @@ export class OrderService {
         });
 
         if (!product) throw new Error(`Product ${item.productId} not found`);
+        if (product.status !== 'ACTIVE') throw new Error(`Product ${product.name} is not available for purchase`);
 
         let unitPrice = Number(product.basePrice);
         let variant = null;
@@ -92,10 +93,18 @@ export class OrderService {
       const deliveryFee = 2500; // Flat fee for MVP
       const totalAmount = subtotal + deliveryFee;
 
-      // 3. Generate human-readable order number FSH-YYYYMMDD-XXXX
+      // 3. Generate human-readable order number FSH-YYYYMMDD-XXXXXXXX with collision retry
       const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
-      const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const orderNumber = `FSH-${dateStr}-${randomStr}`;
+      let orderNumber = '';
+      let attempts = 0;
+      while (attempts < 5) {
+        const randomStr = randomUUID().replace(/-/g, '').substring(0, 8).toUpperCase();
+        orderNumber = `FSH-${dateStr}-${randomStr}`;
+        const existing = await tx.order.findUnique({ where: { orderNumber } });
+        if (!existing) break;
+        attempts++;
+      }
+      if (attempts >= 5) throw new Error('Failed to generate unique order number');
 
       // 4. Create Order + OrderItems
       const order = await tx.order.create({

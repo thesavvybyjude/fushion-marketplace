@@ -12,8 +12,20 @@ import { vendorRoutes } from './routes/vendors/index.js';
 import { productRoutes } from './routes/products/index.js';
 import { categoryRoutes } from './routes/categories/index.js';
 import { healthRoutes } from './routes/health/index.js';
+import orderRoutes from './routes/orders/index.js';
+import webhookRoutes from './routes/webhooks/paystack.js';
 
 export async function buildApp() {
+  // ─── Startup Validation ─────────────────────────────────
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('FATAL: JWT_SECRET environment variable is required in production');
+    }
+    if (!process.env.COOKIE_SECRET) {
+      throw new Error('FATAL: COOKIE_SECRET environment variable is required in production');
+    }
+  }
+
   const app = Fastify({
     logger: {
       transport:
@@ -29,8 +41,18 @@ export async function buildApp() {
     contentSecurityPolicy: process.env.NODE_ENV === 'production',
   });
 
+  const allowedOrigins = process.env.FRONTEND_URL 
+    ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
+    : ['http://localhost:3000'];
+
   await app.register(cors, {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+        return;
+      }
+      cb(new Error("Not allowed by CORS"), false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
@@ -59,6 +81,8 @@ export async function buildApp() {
   await app.register(vendorRoutes, { prefix: '/api/v1/vendors' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
   await app.register(categoryRoutes, { prefix: '/api/v1/categories' });
+  await app.register(orderRoutes, { prefix: '/api/v1/orders' });
+  await app.register(webhookRoutes, { prefix: '/api/v1/webhooks' });
 
   return app;
 }

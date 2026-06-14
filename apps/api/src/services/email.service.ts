@@ -62,7 +62,7 @@ export class EmailService {
       await resend.emails.send({
         from: `Fushion Vendors <${FROM_EMAIL}>`,
         to: vendorEmail,
-        subject: 'New Order Received! 🚀',
+        subject: 'New Order Received',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1A0E08;">
             <h2>Hello ${vendorName},</h2>

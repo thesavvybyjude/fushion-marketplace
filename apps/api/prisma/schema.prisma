@@ -91,11 +91,13 @@ model User {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  vendor        Vendor?
-  orders        Order[]
-  refreshTokens RefreshToken[]
-  addresses     Address[]
-  reviews       Review[]
+  vendor         Vendor?
+  orders         Order[]
+  refreshTokens  RefreshToken[]
+  addresses      Address[]
+  reviews        Review[]
+  invoices       Invoice[]
+  purchaseOrders PurchaseOrder[]
 
   @@index([email])
   @@index([role])

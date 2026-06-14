@@ -152,6 +152,8 @@ export class VendorService {
     }
 
     // If store name is changing, check uniqueness
+    // If store name is changing, check uniqueness of both name and slug
+    let newStoreSlug: string | undefined;
     if (data.storeName && data.storeName !== vendor.storeName) {
       const taken = await this.prisma.vendor.findUnique({
         where: { storeName: data.storeName },
@@ -162,6 +164,13 @@ export class VendorService {
           code: 'STORE_NAME_TAKEN',
         });
       }
+      newStoreSlug = slugify(data.storeName);
+      const slugTaken = await this.prisma.vendor.findFirst({
+        where: { storeSlug: newStoreSlug, userId: { not: userId } },
+      });
+      if (slugTaken) {
+        newStoreSlug = `${newStoreSlug}-${Date.now().toString(36)}`;
+      }
     }
 
     const updated = await this.prisma.vendor.update({
@@ -169,7 +178,7 @@ export class VendorService {
       data: {
         ...(data.storeName && {
           storeName: data.storeName,
-          storeSlug: slugify(data.storeName),
+          storeSlug: newStoreSlug,
         }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.phone && { phone: data.phone }),

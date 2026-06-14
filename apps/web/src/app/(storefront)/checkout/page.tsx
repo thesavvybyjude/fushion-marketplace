@@ -88,12 +88,14 @@ export default function CheckoutPage() {
       );
 
       const { reference } = response.data;
+      // TODO: Pull email from authenticated user profile once auth state is connected
+      const userEmail = 'buyer@fushion.dev'; // Will be replaced with real user email from auth context
       const PAYSTACK_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
 
       // 2. Open Paystack Inline Modal
       const handler = (window as any).PaystackPop.setup({
         key: PAYSTACK_KEY,
-        email: 'buyer@fushion.dev', // Hardcoded for Phase 2 demo, normally from user profile
+        email: userEmail,
         amount: total * 100, // in kobo
         currency: 'NGN',
         ref: reference,

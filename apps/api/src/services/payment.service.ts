@@ -38,7 +38,12 @@ export class PaymentService {
       const paystackAmountNGN = data.amount / 100;
       if (Number(payment.amount) !== paystackAmountNGN) {
         console.error(`Webhook error: Amount mismatch for ref ${reference}. Expected ${payment.amount}, got ${paystackAmountNGN}`);
-        // Flag for manual review, but still mark as successful from Paystack's perspective
+        // Mark as failed and flag for manual review — do NOT fulfill
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: 'FAILED', metadata: { ...data, _mismatchFlag: true } }
+        });
+        return { message: 'Amount mismatch — flagged for manual review' };
       }
 
       // Update in transaction to prevent race conditions

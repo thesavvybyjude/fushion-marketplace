@@ -96,7 +96,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                   slug={product.slug}
                   price={product.price}
                   vendorName={product.vendorName}
-                  imageUrl={product.image}
+                  image={product.image}
                   rating={product.rating}
                 />
               ))}

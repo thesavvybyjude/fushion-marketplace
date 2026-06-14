@@ -8,8 +8,8 @@ async function start() {
 
   try {
     await app.listen({ port: PORT, host: HOST });
-    app.log.info(`🔥 Fushion API running at http://${HOST}:${PORT}`);
-    app.log.info(`📚 Swagger docs at http://${HOST}:${PORT}/docs`);
+    app.log.info(`[Fushion API] Running at http://${HOST}:${PORT}`);
+    app.log.info(`[Swagger] Docs at http://${HOST}:${PORT}/docs`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

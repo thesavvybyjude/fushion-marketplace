@@ -61,23 +61,23 @@ export class PayoutService {
 
     const transferData = await transferRes.json();
     
+    if (!transferData.status) {
+      throw new Error(`Transfer failed: ${transferData.message}`);
+    }
+
     // 3. Record Payout in DB
     const payout = await this.prisma.payout.create({
       data: {
         vendorId,
         amount,
-        status: transferData.status ? 'PROCESSING' : 'FAILED',
-        paystackTransferId: transferData.status ? transferData.data.transfer_code : null,
+        status: 'PROCESSING',
+        paystackTransferId: transferData.data.transfer_code,
         bankName: vendor.bankName || 'Unknown Bank',
         accountNumber: vendor.bankAccountNumber,
         accountName: vendor.bankAccountName || vendor.storeName,
         note: transferData.message,
       }
     });
-
-    if (!transferData.status) {
-      throw new Error(`Transfer failed: ${transferData.message}`);
-    }
 
     return payout;
   }

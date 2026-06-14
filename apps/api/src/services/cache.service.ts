@@ -16,6 +16,7 @@ export class CacheService {
   }
 
   async get<T>(key: string): Promise<T | null> {
+    if (this.redis.status !== 'ready') return null;
     try {
       const data = await this.redis.get(key);
       if (!data) return null;
@@ -27,6 +28,7 @@ export class CacheService {
   }
 
   async set(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
+    if (this.redis.status !== 'ready') return;
     try {
       await this.redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
     } catch (error) {
@@ -35,6 +37,7 @@ export class CacheService {
   }
 
   async invalidate(pattern: string): Promise<void> {
+    if (this.redis.status !== 'ready') return;
     try {
       // For simple keys without wildcards
       if (!pattern.includes('*')) {

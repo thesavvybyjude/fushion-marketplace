@@ -303,10 +303,22 @@ export class ProductService {
       }
     }
 
+    // If name is changing, regenerate slug with uniqueness check
+    let newSlug: string | undefined;
+    if (data.name) {
+      newSlug = slugify(data.name);
+      const slugExists = await this.prisma.product.findFirst({
+        where: { slug: newSlug, id: { not: productId } },
+      });
+      if (slugExists) {
+        newSlug = `${newSlug}-${Date.now().toString(36)}`;
+      }
+    }
+
     const updated = await this.prisma.product.update({
       where: { id: productId },
       data: {
-        ...(data.name && { name: data.name, slug: slugify(data.name) }),
+        ...(data.name && { name: data.name, slug: newSlug }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.categoryId && { categoryId: data.categoryId }),
         ...(data.basePrice !== undefined && { basePrice: data.basePrice }),

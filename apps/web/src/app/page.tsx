@@ -74,8 +74,8 @@ export default function Home() {
                 Shop from thousands of verified local vendors across Nigeria. Secure payments, fast delivery, authentic products.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-                <Button size="lg" className="w-full sm:w-auto px-8 py-4 text-lg">Start Shopping</Button>
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto px-8 py-4 text-lg bg-white/5 border-white/20 text-white hover:bg-white/10">Become a Vendor</Button>
+                <a href="/all-products" className="w-full sm:w-auto"><Button size="lg" className="w-full sm:w-auto px-8 py-4 text-lg">Start Shopping</Button></a>
+                <a href="/become-a-vendor" className="w-full sm:w-auto"><Button size="lg" variant="secondary" className="w-full sm:w-auto px-8 py-4 text-lg bg-white/5 border-white/20 text-white hover:bg-white/10">Become a Vendor</Button></a>
               </div>
             </div>
             <div className="flex-1 hidden md:block">
