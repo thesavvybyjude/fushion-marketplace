@@ -1,4 +1,5 @@
 import { buildApp } from './app.js';
+import { closeRedis } from './lib/redis.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -15,10 +16,12 @@ async function start() {
     process.exit(1);
   }
 
-  // ─── Graceful shutdown ─────────────────────────────────
   const shutdown = async (signal: string) => {
     app.log.info(`Received ${signal}. Shutting down gracefully...`);
-    await app.close();
+    await Promise.all([
+      app.close(),
+      closeRedis(),
+    ]);
     process.exit(0);
   };
 

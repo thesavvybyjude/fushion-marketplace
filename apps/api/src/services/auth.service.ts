@@ -186,7 +186,7 @@ export class AuthService {
     const accessToken = jwt.sign(
       { userId, role } satisfies Omit<JwtPayload, 'iat' | 'exp'>,
       JWT_SECRET,
-      { expiresIn: ACCESS_TOKEN_EXPIRY },
+      { expiresIn: ACCESS_TOKEN_EXPIRY as any },
     );
 
     // Refresh token — opaque UUID stored in DB

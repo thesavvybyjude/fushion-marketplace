@@ -1,8 +1,8 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 export async function b2bRoutes(fastify: FastifyInstance) {
   fastify.post(
-    '/b2b/bulk-order',
+    '/bulk-order',
     {
       preValidation: [fastify.requireAuth, fastify.requireRole('B2B_BUYER')],
       schema: {
@@ -30,7 +30,7 @@ export async function b2bRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Body: any }>, reply: FastifyReply) => {
+    async (_request: any, reply: any) => {
       // In a real scenario, this delegates to an OrderService
       // which creates the Order, the OrderItems, and finally the Invoice.
       return reply.send({
@@ -42,7 +42,7 @@ export async function b2bRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post(
-    '/b2b/po-upload',
+    '/po-upload',
     {
       preValidation: [fastify.requireAuth, fastify.requireRole('B2B_BUYER')],
       schema: {
@@ -57,8 +57,8 @@ export async function b2bRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Body: any }>, reply: FastifyReply) => {
-      const { documentUrl } = request.body;
+    async (request: any, reply: any) => {
+      const { documentUrl } = request.body as any;
       const user = request.user!;
 
       const po = await fastify.prisma.purchaseOrder.create({

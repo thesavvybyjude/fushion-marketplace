@@ -4,23 +4,21 @@ import { randomUUID } from 'crypto';
 export class OrderService {
   constructor(private prisma: PrismaClient) {}
 
-  /**
-   * Initializes an order from cart items.
-   * Runs in a Prisma transaction to guarantee atomic creation of the order, items, and pending payment.
-   */
   async checkout(userId: string, items: any[], addressData: any) {
     if (!items || items.length === 0) {
-      throw new Error('Cart is empty');
+      throw Object.assign(new Error('Cart is empty'), {
+        statusCode: 400,
+        code: 'EMPTY_CART',
+      });
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create or get delivery address
       let address = null;
       if (addressData.id) {
         address = await tx.address.findFirst({
           where: { id: addressData.id, userId }
         });
-        if (!address) throw new Error('Address not found');
+        if (!address) throw Object.assign(new Error('Address not found'), { statusCode: 404, code: 'ADDRESS_NOT_FOUND' });
       } else {
         address = await tx.address.create({
           data: {
@@ -39,46 +37,51 @@ export class OrderService {
       let subtotal = 0;
       const orderItemsData = [];
 
-      // 2. Validate items, check stock, calculate snapshot prices and commissions
       for (const item of items) {
         const product = await tx.product.findUnique({
           where: { id: item.productId },
           include: { vendor: true, images: true }
         });
 
-        if (!product) throw new Error(`Product ${item.productId} not found`);
-        if (product.status !== 'ACTIVE') throw new Error(`Product ${product.name} is not available for purchase`);
+        if (!product) throw Object.assign(new Error(`Product ${item.productId} not found`), { statusCode: 404, code: 'PRODUCT_NOT_FOUND' });
+        if (product.status !== 'ACTIVE') throw Object.assign(new Error(`Product ${product.name} is not available for purchase`), { statusCode: 400, code: 'PRODUCT_NOT_ACTIVE' });
 
         let unitPrice = Number(product.basePrice);
         let variant = null;
 
         if (item.variantId) {
           variant = await tx.productVariant.findUnique({
-            where: { id: item.variantId }
+            where: { id: item.variantId, isActive: true },
           });
-          if (!variant) throw new Error(`Variant ${item.variantId} not found`);
-          if (variant.stock < item.quantity) throw new Error(`Insufficient stock for ${product.name}`);
+
+          if (!variant) throw Object.assign(new Error(`Variant ${item.variantId} not found`), { statusCode: 404, code: 'VARIANT_NOT_FOUND' });
+
+          if (variant.stock < item.quantity) {
+            throw Object.assign(new Error(`Insufficient stock for ${product.name}. Available: ${variant.stock}`), {
+              statusCode: 409,
+              code: 'INSUFFICIENT_STOCK',
+            });
+          }
+
           unitPrice = Number(variant.price);
         }
 
         const totalPrice = unitPrice * item.quantity;
         subtotal += totalPrice;
 
-        // Commission calculation (snapshot vendor's current commission rate)
         const commissionRate = product.vendor.commissionRate;
         const commissionAmount = totalPrice * commissionRate;
         const vendorAmount = totalPrice - commissionAmount;
 
-        // Snapshot of product details so order history doesn't break if product changes
         const productSnapshot = {
           name: product.name,
-          image: product.images[0]?.url,
-          variantName: variant?.name,
+          image: product.images[0]?.url || null,
+          variantName: variant?.name || null,
         };
 
         orderItemsData.push({
           productId: product.id,
-          variantId: variant?.id,
+          variantId: variant?.id || null,
           vendorId: product.vendorId,
           quantity: item.quantity,
           unitPrice,
@@ -90,11 +93,10 @@ export class OrderService {
         });
       }
 
-      const deliveryFee = 2500; // Flat fee for MVP
+      const deliveryFee = Number(process.env.DELIVERY_FEE ?? '2500');
       const totalAmount = subtotal + deliveryFee;
 
-      // 3. Generate human-readable order number FSH-YYYYMMDD-XXXXXXXX with collision retry
-      const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       let orderNumber = '';
       let attempts = 0;
       while (attempts < 5) {
@@ -106,7 +108,6 @@ export class OrderService {
       }
       if (attempts >= 5) throw new Error('Failed to generate unique order number');
 
-      // 4. Create Order + OrderItems
       const order = await tx.order.create({
         data: {
           orderNumber,
@@ -121,10 +122,9 @@ export class OrderService {
         }
       });
 
-      // 5. Initialize Payment (Pending)
-      const paystackRef = `REF-${randomUUID()}`; // Generate a unique reference for Paystack
-      
-      const payment = await tx.payment.create({
+      const paystackRef = `REF-${randomUUID()}`;
+
+      await tx.payment.create({
         data: {
           orderId: order.id,
           paystackRef,
@@ -132,6 +132,22 @@ export class OrderService {
           idempotencyKey: randomUUID(),
         }
       });
+
+      for (const item of items) {
+        if (item.variantId) {
+          const result = await tx.productVariant.updateMany({
+            where: { id: item.variantId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+
+          if (result.count === 0) {
+            throw Object.assign(
+              new Error(`Insufficient stock for variant ${item.variantId} — sold out`),
+              { statusCode: 409, code: 'INSUFFICIENT_STOCK' },
+            );
+          }
+        }
+      }
 
       return {
         order,

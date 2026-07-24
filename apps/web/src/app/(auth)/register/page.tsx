@@ -1,82 +1,110 @@
 'use client';
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { MobileNav } from '@/components/layout/mobile-nav';
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button, Input, Card } from '@/components/ui';
+import { api } from '@/lib/api';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    // Mock register delay
-    setTimeout(() => {
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const fullName = (formData.get('fullName') as string).trim();
+      const nameParts = fullName.split(/\s+/);
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : firstName;
+
+      const res: any = await api.post('/auth/register', {
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+        firstName,
+        lastName,
+      });
+
+      api.setAccessToken(res.data.accessToken);
+      router.push('/account');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
       setLoading(false);
-      window.location.href = '/account';
-    }, 1500);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
-      <Header />
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+      <Card className="w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <Link href="/" className="text-2xl font-black tracking-tight text-coal">
+            Fu<span className="text-ember">sh</span>ion
+          </Link>
+          <p className="text-coal/60 mt-2">Create your account</p>
+        </div>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-12 md:py-20 w-full flex items-center justify-center">
-        <Card padding="lg" className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-coal mb-2">Create an Account</h1>
-            <p className="text-sm text-coal/60">Join Nigeria&apos;s premier marketplace</p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-4">
+          <Input
+            label="Full Name"
+            type="text"
+            name="fullName"
+            placeholder="Chidi Okeke"
+            required
+          />
+          <Input
+            label="Email Address"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="At least 8 characters"
+            minLength={8}
+            required
+          />
+
+          <div className="flex items-start gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="vendor-signup"
+              name="becomeVendor"
+              className="mt-1 w-4 h-4 rounded border-coal/20 text-ember focus:ring-ember/20"
+            />
+            <label htmlFor="vendor-signup" className="text-sm text-coal/80">
+              I want to become a vendor and sell products on Fushion
+            </label>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-4">
-            <Input
-              label="Full Name"
-              type="text"
-              placeholder="Chidi Okeke"
-              required
-            />
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              required
-            />
-            
-            <div className="flex items-start gap-2 pt-2">
-              <input 
-                type="checkbox" 
-                id="vendor-signup" 
-                className="mt-1 w-4 h-4 rounded border-coal/20 text-ember focus:ring-ember/20"
-              />
-              <label htmlFor="vendor-signup" className="text-sm text-coal/80">
-                I want to become a vendor and sell products on Fushion
-              </label>
-            </div>
+          <Button type="submit" fullWidth loading={loading}>
+            Create Account
+          </Button>
+        </form>
 
-            <Button type="submit" className="w-full mt-4" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center text-sm text-coal/60">
-            Already have an account?{' '}
-            <a href="/login" className="font-bold text-coal hover:text-ember transition-colors">
-              Sign In
-            </a>
-          </div>
-        </Card>
-      </main>
-
-      <Footer />
-      <MobileNav />
+        <p className="text-center text-sm text-coal/60 mt-6">
+          Already have an account?{' '}
+          <Link href="/login" className="text-ember font-medium hover:text-ember/80">
+            Sign In
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 }

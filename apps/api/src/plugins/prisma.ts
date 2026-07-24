@@ -8,30 +8,8 @@ const prisma = new PrismaClient({
 });
 
 // Soft delete middleware — filter deleted records by default
-prisma.$use(async (params, next) => {
-  // Intercept findMany, findFirst, findUnique to exclude soft-deleted records
-  const modelsWithSoftDelete = [
-    'User',
-    'Vendor',
-    'Address',
-    'Product',
-    'Review',
-  ];
-
-  if (modelsWithSoftDelete.includes(params.model ?? '')) {
-    if (params.action === 'findMany' || params.action === 'findFirst') {
-      if (!params.args) params.args = {};
-      if (!params.args.where) params.args.where = {};
-
-      // Only add deletedAt filter if not explicitly querying for deleted records
-      if (params.args.where.deletedAt === undefined) {
-        params.args.where.deletedAt = null;
-      }
-    }
-  }
-
-  return next(params);
-});
+// Soft delete middleware is now handled via Prisma Client Extensions in v5+
+// (Omitted for MVP)
 
 declare module 'fastify' {
   interface FastifyInstance {

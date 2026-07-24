@@ -54,7 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={dmSans.variable}>
-      <body className="antialiased min-h-screen flex flex-col bg-paper scroll-smooth">
+      <body className="antialiased min-h-screen flex flex-col bg-paper bg-gradient-to-br from-paper via-white to-paper/50 scroll-smooth selection:bg-ember/20 selection:text-ember-900">
         <PwaRegister />
         {children}
         <ToastContainer />

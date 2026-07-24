@@ -3,7 +3,7 @@ export class LogisticsService {
    * Generates a shipment and tracking number via external provider (GIG Logistics or Sendbox)
    * This is a mock implementation for the MVP.
    */
-  async createShipment(orderId: string, deliveryAddress: any) {
+  async createShipment(_orderId: string, _deliveryAddress: any) {
     // 1. Call external Logistics API (e.g., https://api.sendbox.ng/v1/shipments)
     // const res = await axios.post('...', { origin, destination: deliveryAddress });
     

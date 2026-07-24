@@ -1,98 +1,91 @@
 'use client';
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { MobileNav } from '@/components/layout/mobile-nav';
-import { Button, Input, Card, toast_error, toast_success } from '@/components/ui';
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
+import { Button, Input, Card } from '@/components/ui';
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    
+
     try {
-      const response = await api.post<{ data: { accessToken: string; user: { role: string } } }>('/auth/login', { email, password });
-      
-      const { accessToken, user } = response.data;
-      
-      // Set cookies for middleware
-      document.cookie = `fushion_token=${accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      document.cookie = `fushion_role=${user.role}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      
-      api.setAccessToken(accessToken);
-      toast_success('Welcome back!');
-      
-      if (user.role === 'ADMIN') {
-        window.location.href = '/admin';
-      } else if (user.role === 'VENDOR') {
-        window.location.href = '/vendor/dashboard';
-      } else {
-        window.location.href = '/account';
-      }
-    } catch (error: any) {
-      toast_error(error.message || 'Login failed. Please check your credentials.');
+      const res: any = await api.post('/auth/login', { email, password });
+
+      api.setAccessToken(res.data.accessToken);
+
+      const role = res.data.user.role;
+      if (role === 'ADMIN') router.push('/admin');
+      else if (role === 'VENDOR') router.push('/vendor/dashboard');
+      else router.push('/account');
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper">
-      <Header />
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+      <Card className="w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <Link href="/" className="text-2xl font-black tracking-tight text-coal">
+            Fu<span className="text-ember">sh</span>ion
+          </Link>
+          <p className="text-coal/60 mt-2">Welcome back</p>
+        </div>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-12 md:py-20 w-full flex items-center justify-center">
-        <Card padding="lg" className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-coal mb-2">Welcome Back</h1>
-            <p className="text-sm text-coal/60">Sign in to your Fushion account</p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <div className="flex justify-end">
+            <Link href="/forgot-password" className="text-sm text-ember hover:text-ember/80">
+              Forgot password?
+            </Link>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-            <div className="space-y-1">
-              <Input
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-              <div className="flex justify-end">
-                <a href="#" className="text-xs font-medium text-ember hover:underline">
-                  Forgot Password?
-                </a>
-              </div>
-            </div>
+          <Button type="submit" fullWidth loading={loading}>
+            Sign In
+          </Button>
+        </form>
 
-            <Button type="submit" className="w-full mt-4" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-
-          <div className="mt-8 text-center text-sm text-coal/60">
-            Don&apos;t have an account?{' '}
-            <a href="/register" className="font-bold text-coal hover:text-ember transition-colors">
-              Register here
-            </a>
-          </div>
-        </Card>
-      </main>
-
-      <Footer />
-      <MobileNav />
+        <p className="text-center text-sm text-coal/60 mt-6">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-ember font-medium hover:text-ember/80">
+            Create one
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface CardProps {
   children: ReactNode;
@@ -14,15 +16,15 @@ const paddingClasses = {
   lg: 'p-6 md:p-8',
 };
 
-export function Card({ children, className = '', hover = false, padding = 'md' }: CardProps) {
+export function Card({ children, className, hover = false, padding = 'md' }: CardProps) {
   return (
     <div
-      className={`
-        bg-white rounded-xl border border-coal/5 overflow-hidden
-        ${hover ? 'transition-all duration-300 hover:shadow-lg hover:shadow-coal/5 hover:-translate-y-0.5 hover:border-ember/10' : ''}
-        ${paddingClasses[padding]}
-        ${className}
-      `}
+      className={cn(
+        'bg-white/80 backdrop-blur-xl rounded-2xl border border-coal/5 overflow-hidden shadow-sm',
+        hover && 'transition-all duration-300 hover:shadow-premium hover:-translate-y-1 hover:border-ember/20 hover:bg-white',
+        paddingClasses[padding],
+        className
+      )}
     >
       {children}
     </div>
@@ -61,7 +63,7 @@ export function ProductCard({
     <a
       href={`/product/${slug}`}
       id={`product-card-${id}`}
-      className="group block bg-white rounded-xl border border-coal/5 overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-coal/5 hover:-translate-y-1 hover:border-ember/10"
+      className="group block bg-white rounded-2xl border border-coal/5 overflow-hidden transition-all duration-300 hover:shadow-premium hover:-translate-y-1 hover:border-ember/20"
     >
       {/* Image */}
       <div className="relative aspect-square bg-paper overflow-hidden">
@@ -69,7 +71,7 @@ export function ProductCard({
           <img
             src={image}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             loading="lazy"
           />
         ) : (
@@ -82,27 +84,27 @@ export function ProductCard({
 
         {/* Discount badge */}
         {discount && discount > 0 && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 bg-ember text-white text-xs font-bold rounded-md">
+          <div className="absolute top-3 left-3 px-2.5 py-1 bg-ember/90 backdrop-blur-md text-white text-xs font-bold rounded-lg shadow-sm">
             -{discount}%
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-4">
         {/* Vendor */}
-        <p className="text-2xs text-market-green font-medium mb-1 truncate">
+        <p className="text-2xs text-market-green font-semibold uppercase tracking-wider mb-1.5 truncate opacity-80">
           {vendorName}
         </p>
 
         {/* Name */}
-        <h3 className="text-sm font-medium text-coal line-clamp-2 mb-2 group-hover:text-ember transition-colors min-h-[2.5rem]">
+        <h3 className="text-sm font-medium text-coal line-clamp-2 mb-2.5 group-hover:text-ember transition-colors min-h-[2.5rem]">
           {name}
         </h3>
 
         {/* Price */}
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-bold text-ember">
+          <span className="text-lg font-bold text-coal">
             ₦{price.toLocaleString()}
           </span>
           {compareAtPrice && (
@@ -114,12 +116,12 @@ export function ProductCard({
 
         {/* Rating */}
         {rating > 0 && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-1 mt-3">
             <div className="flex items-center">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
                   key={star}
-                  className={`w-3 h-3 ${star <= Math.round(rating) ? 'text-gold-dust' : 'text-coal/15'}`}
+                  className={`w-3.5 h-3.5 ${star <= Math.round(rating) ? 'text-gold-dust' : 'text-coal/15'}`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -127,7 +129,7 @@ export function ProductCard({
                 </svg>
               ))}
             </div>
-            <span className="text-2xs text-coal/40">({reviewCount})</span>
+            <span className="text-xs text-coal/50 font-medium ml-1">({reviewCount})</span>
           </div>
         )}
       </div>

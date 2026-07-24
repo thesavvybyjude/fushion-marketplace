@@ -73,12 +73,13 @@ export async function categoryRoutes(fastify: FastifyInstance) {
       // First get category ID from slug
       const category = await categoryService.getBySlug(request.params.slug);
 
+      const query = request.query as any;
       const result = await productService.list({
         categoryId: category.id,
-        cursor: request.query.cursor,
-        limit: request.query.limit ? parseInt(request.query.limit) : 20,
-        sortBy: request.query.sortBy,
-        sortOrder: request.query.sortOrder,
+        cursor: query.cursor,
+        limit: query.limit ? parseInt(query.limit) : 20,
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder,
       });
 
       return reply.send({ success: true, ...result });

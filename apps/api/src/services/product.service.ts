@@ -1,4 +1,6 @@
 import type { PrismaClient, Prisma } from '@prisma/client';
+import { SearchService } from './search.service.js';
+import { cacheService } from './cache.service.js';
 
 function slugify(text: string): string {
   return text
@@ -10,7 +12,12 @@ function slugify(text: string): string {
 }
 
 export class ProductService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private searchService?: SearchService,
+  ) {
+    this.searchService = searchService || (process.env.TYPESENSE_HOST ? new SearchService() : undefined);
+  }
 
   async create(
     vendorId: string,
@@ -86,6 +93,14 @@ export class ProductService {
       },
     });
 
+    if (this.searchService && product.status === 'ACTIVE') {
+      this.searchService.indexProduct(product).catch((err) => {
+        console.error('Failed to index product in Typesense:', err);
+      });
+    }
+
+    await cacheService.invalidate('products:*');
+
     return product;
   }
 
@@ -101,6 +116,16 @@ export class ProductService {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }) {
+    const cacheKey = `products:list:${JSON.stringify(params)}`;
+    const cached = await cacheService.get<{
+      data: any[];
+      pagination: { cursor: string | null; hasMore: boolean };
+    }>(cacheKey);
+
+    if (cached && !params.search) {
+      return cached;
+    }
+
     const limit = Math.min(params.limit || 20, 100);
 
     const where: Prisma.ProductWhereInput = {
@@ -179,7 +204,7 @@ export class ProductService {
     const items = hasMore ? products.slice(0, limit) : products;
     const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-    return {
+    const result = {
       data: items.map((p) => ({
         ...p,
         basePrice: Number(p.basePrice),
@@ -192,6 +217,12 @@ export class ProductService {
         hasMore,
       },
     };
+
+    if (!params.search) {
+      await cacheService.set(cacheKey, result, 60);
+    }
+
+    return result;
   }
 
   async getById(productId: string) {
@@ -336,6 +367,14 @@ export class ProductService {
       },
     });
 
+    if (this.searchService) {
+      this.searchService.indexProduct(updated).catch((err) => {
+        console.error('Failed to re-index product in Typesense:', err);
+      });
+    }
+
+    await cacheService.invalidate('products:*');
+
     return {
       ...updated,
       basePrice: Number(updated.basePrice),
@@ -366,6 +405,14 @@ export class ProductService {
       where: { id: productId },
       data: { deletedAt: new Date(), status: 'ARCHIVED' },
     });
+
+    if (this.searchService) {
+      this.searchService.deleteProduct(productId).catch((err) => {
+        console.error('Failed to remove product from Typesense:', err);
+      });
+    }
+
+    await cacheService.invalidate('products:*');
 
     return { message: 'Product deleted successfully' };
   }

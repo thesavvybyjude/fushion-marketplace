@@ -53,7 +53,7 @@ export function ReviewList({ productId }: { productId: string }) {
               <span className="font-bold text-coal">{review.user}</span>
               <span>•</span>
               <span>{review.date}</span>
-              <Badge variant="market-green" className="ml-2 scale-75 origin-left">Verified Buyer</Badge>
+              <Badge variant="green" className="ml-2 scale-75 origin-left">Verified Buyer</Badge>
             </div>
           </div>
         ))}

@@ -1,5 +1,6 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { SearchService } from '../../services/search.service.js';
 
 const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
   // GET /api/v1/admin/stats
@@ -22,7 +23,7 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
         }
       }
     },
-    async (request, reply) => {
+    async (_request: any, _reply: any) => {
       // Aggregations
       const [
         totalSales,
@@ -57,7 +58,7 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
         summary: 'List products awaiting approval',
       }
     },
-    async (request, reply) => {
+    async (_request: any, _reply: any) => {
       const products = await fastify.prisma.product.findMany({
         where: { status: 'PENDING_APPROVAL' },
         include: { vendor: true, images: true },
@@ -79,16 +80,27 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
         body: z.object({ status: z.enum(['ACTIVE', 'REJECTED']) }),
       }
     },
-    async (request, reply) => {
+    async (request: any, _reply: any) => {
       const { id } = request.params;
       const { status } = request.body;
 
       const product = await fastify.prisma.product.update({
         where: { id },
         data: { status },
+        include: {
+          vendor: { select: { storeName: true } },
+          category: { select: { name: true } },
+          images: { take: 1, orderBy: { sortOrder: 'asc' } },
+        },
       });
 
-      // If active, it should be indexed in Typesense (handled by a queue or SearchService ideally)
+      if (status === 'ACTIVE') {
+        const searchService = new SearchService();
+        searchService.indexProduct(product).catch((err) => {
+          request.log.error({ err }, 'Failed to index product in Typesense');
+        });
+      }
+
       return { success: true, data: product };
     }
   );

@@ -32,14 +32,15 @@ export async function authRoutes(fastify: FastifyInstance) {
       const data = registerSchema.parse(request.body);
       const result = await authService.register(data);
 
-      // Set refresh token as httpOnly cookie
-      reply.setCookie('refreshToken', result.refreshToken, {
+      const cookieOpts = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/api/v1/auth',
-        maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-      });
+        sameSite: 'lax' as const,
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60,
+      };
+
+      reply.setCookie('refreshToken', result.refreshToken, cookieOpts);
 
       return reply.status(201).send({
         success: true,
@@ -78,8 +79,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('refreshToken', result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/api/v1/auth',
+        sameSite: 'lax' as const,
+        path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
 
@@ -117,8 +118,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/api/v1/auth',
+        sameSite: 'lax' as const,
+        path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
 
@@ -145,7 +146,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         await authService.logout(refreshToken);
       }
 
-      reply.clearCookie('refreshToken', { path: '/api/v1/auth' });
+      reply.clearCookie('refreshToken', { path: '/' });
 
       return reply.send({
         success: true,

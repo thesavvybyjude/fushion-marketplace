@@ -1,6 +1,6 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { OrderService } from '../../services/order.service';
+import { OrderService } from '../../services/order.service.js';
 
 const ordersPlugin: FastifyPluginAsyncZod = async (fastify) => {
   const orderService = new OrderService(fastify.prisma);
@@ -31,7 +31,7 @@ const ordersPlugin: FastifyPluginAsyncZod = async (fastify) => {
         })
       }
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { items, address } = request.body;
       const { userId } = request.user;
 
@@ -64,7 +64,7 @@ const ordersPlugin: FastifyPluginAsyncZod = async (fastify) => {
       onRequest: [fastify.requireAuth],
       schema: { summary: 'Get current buyer orders' }
     },
-    async (request, reply) => {
+    async (request: any) => {
       const { userId } = request.user;
 
       const orders = await fastify.prisma.order.findMany({

@@ -65,7 +65,7 @@ export async function vendorRoutes(fastify: FastifyInstance) {
         storeName: z.string().min(3).max(50).optional(),
         description: z.string().min(20).max(500).optional(),
         phone: z.string().min(10).max(15).optional(),
-        whatsapp: z.string().min(10).max(15).optional().nullable(),
+        whatsapp: z.string().min(10).max(15).optional(),
         logoUrl: z.string().url().optional(),
         bannerUrl: z.string().url().optional(),
       });

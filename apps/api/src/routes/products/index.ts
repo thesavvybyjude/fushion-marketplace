@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ProductService } from '../../services/product.service.js';
-import { createProductSchema, updateProductSchema, paginationSchema } from '@fushion/shared/validators';
+import { createProductSchema, updateProductSchema } from '@fushion/shared/validators';
 import { z } from 'zod';
 
 export async function productRoutes(fastify: FastifyInstance) {
@@ -128,7 +128,7 @@ export async function productRoutes(fastify: FastifyInstance) {
       },
       preHandler: [fastify.requireRole('VENDOR', 'ADMIN')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request: any, reply: FastifyReply) => {
       const data = updateProductSchema.parse(request.body);
 
       const vendor = await fastify.prisma.vendor.findUnique({
@@ -165,7 +165,7 @@ export async function productRoutes(fastify: FastifyInstance) {
       },
       preHandler: [fastify.requireRole('VENDOR', 'ADMIN')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request: any, reply: FastifyReply) => {
       const vendor = await fastify.prisma.vendor.findUnique({
         where: { userId: request.user!.userId },
         select: { id: true },
@@ -200,7 +200,7 @@ export async function productRoutes(fastify: FastifyInstance) {
       },
       preHandler: [fastify.requireRole('VENDOR')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request: any, reply: FastifyReply) => {
       const imageSchema = z.object({
         images: z.array(
           z.object({

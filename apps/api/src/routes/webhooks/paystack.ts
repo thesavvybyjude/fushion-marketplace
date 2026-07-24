@@ -1,5 +1,5 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import { PaymentService } from '../../services/payment.service';
+import { PaymentService } from '../../services/payment.service.js';
 
 const webhooksPlugin: FastifyPluginAsyncZod = async (fastify) => {
   const paymentService = new PaymentService(fastify.prisma);
@@ -12,7 +12,7 @@ const webhooksPlugin: FastifyPluginAsyncZod = async (fastify) => {
         rawBody: true, // Need raw body for HMAC signature verification
       }
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const signature = request.headers['x-paystack-signature'] as string;
       const secret = process.env.PAYSTACK_WEBHOOK_SECRET;
 
@@ -23,14 +23,11 @@ const webhooksPlugin: FastifyPluginAsyncZod = async (fastify) => {
       try {
         const body = request.body;
         const result = await paymentService.handlePaystackWebhook(body, signature, secret);
-        
-        // Paystack expects a 200 OK immediately
+
         return reply.status(200).send(result);
       } catch (error: any) {
         request.log.error('Paystack webhook error:', error);
-        // Do not return 500 to Paystack unless we want them to retry. 
-        // 400 is better for signature failures.
-        return reply.status(400).send({ error: error.message });
+        return reply.status(200).send({ error: error.message });
       }
     }
   );

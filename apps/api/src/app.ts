@@ -14,15 +14,17 @@ import { categoryRoutes } from './routes/categories/index.js';
 import { healthRoutes } from './routes/health/index.js';
 import orderRoutes from './routes/orders/index.js';
 import webhookRoutes from './routes/webhooks/paystack.js';
+import adminPlugin from './routes/admin/index.js';
+import { b2bRoutes } from './routes/b2b/index.js';
+import { vendorAnalyticsRoutes } from './routes/vendors/analytics.js';
+import sentryPlugin from './plugins/sentry.js';
 
 export async function buildApp() {
   // ─── Startup Validation ─────────────────────────────────
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.JWT_SECRET) {
-      throw new Error('FATAL: JWT_SECRET environment variable is required in production');
-    }
-    if (!process.env.COOKIE_SECRET) {
-      throw new Error('FATAL: COOKIE_SECRET environment variable is required in production');
+  const requiredVars = ['JWT_SECRET', 'COOKIE_SECRET'];
+  for (const v of requiredVars) {
+    if (!process.env[v]) {
+      throw new Error(`FATAL: ${v} environment variable is required`);
     }
   }
 
@@ -63,7 +65,7 @@ export async function buildApp() {
   });
 
   await app.register(cookie, {
-    secret: process.env.COOKIE_SECRET || 'fushion-cookie-secret-change-me',
+    secret: process.env.COOKIE_SECRET,
     parseOptions: {},
   });
 
@@ -71,6 +73,9 @@ export async function buildApp() {
   await app.register(prismaPlugin);
   await app.register(swaggerPlugin);
   await app.register(authPlugin);
+
+  // ─── Sentry (before error handler — registers its own) ─
+  await app.register(sentryPlugin);
 
   // ─── Error Handling ────────────────────────────────────
   app.setErrorHandler(errorHandler);
@@ -83,6 +88,9 @@ export async function buildApp() {
   await app.register(categoryRoutes, { prefix: '/api/v1/categories' });
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
   await app.register(webhookRoutes, { prefix: '/api/v1/webhooks' });
+  await app.register(adminPlugin, { prefix: '/api/v1/admin' });
+  await app.register(b2bRoutes, { prefix: '/api/v1/b2b' });
+  await app.register(vendorAnalyticsRoutes, { prefix: '/api/v1' });
 
   return app;
 }

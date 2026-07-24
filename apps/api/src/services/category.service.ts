@@ -1,9 +1,13 @@
 import type { PrismaClient } from '@prisma/client';
+import { cacheService } from './cache.service.js';
 
 export class CategoryService {
   constructor(private prisma: PrismaClient) {}
 
   async getAll() {
+    const cacheKey = 'categories:tree';
+    const cached = await cacheService.get<any[]>(cacheKey);
+    if (cached) return cached;
     const categories = await this.prisma.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
@@ -37,6 +41,8 @@ export class CategoryService {
         roots.push(node);
       }
     }
+
+    await cacheService.set(cacheKey, roots, 300);
 
     return roots;
   }

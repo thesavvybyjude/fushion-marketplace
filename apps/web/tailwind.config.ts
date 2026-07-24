@@ -81,12 +81,21 @@ const config: Config = {
       screens: {
         xs: '375px',
       },
+      boxShadow: {
+        'premium': '0 4px 20px -2px rgba(26, 14, 8, 0.05), 0 0 3px rgba(26, 14, 8, 0.02)',
+        'premium-hover': '0 10px 30px -4px rgba(26, 14, 8, 0.08), 0 0 5px rgba(26, 14, 8, 0.03)',
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%)',
+      },
       animation: {
         'shimmer': 'shimmer 2s ease-in-out infinite',
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
+        'pulse-subtle': 'pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         shimmer: {
@@ -109,6 +118,10 @@ const config: Config = {
           '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        pulseSubtle: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.85' },
+        },
       },
     },
   },
@@ -116,3 +129,4 @@ const config: Config = {
 };
 
 export default config;
+

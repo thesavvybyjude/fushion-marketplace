@@ -1,5 +1,6 @@
 import type { FastifyError, FastifyRequest, FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
+import * as Sentry from '@sentry/node';
 
 export function errorHandler(
   error: FastifyError,
@@ -8,7 +9,14 @@ export function errorHandler(
 ) {
   request.log.error(error);
 
-  // ─── Zod validation errors ─────────────────────────────
+  // Report 500s to Sentry
+  if (error.statusCode === 500 || !error.statusCode) {
+    Sentry.captureException(error, {
+      user: { id: (request.user as any)?.userId },
+      tags: { path: request.url, method: request.method },
+    });
+  }
+
   if (error instanceof ZodError) {
     const details: Record<string, string[]> = {};
     for (const issue of error.issues) {
@@ -27,7 +35,6 @@ export function errorHandler(
     });
   }
 
-  // ─── Rate limit errors ─────────────────────────────────
   if (error.statusCode === 429) {
     return reply.status(429).send({
       success: false,
@@ -38,7 +45,6 @@ export function errorHandler(
     });
   }
 
-  // ─── Known HTTP errors ─────────────────────────────────
   if (error.statusCode && error.statusCode < 500) {
     return reply.status(error.statusCode).send({
       success: false,
@@ -49,8 +55,6 @@ export function errorHandler(
     });
   }
 
-  // ─── Internal server errors ────────────────────────────
-  // NEVER expose stack traces in production
   return reply.status(500).send({
     success: false,
     error: {

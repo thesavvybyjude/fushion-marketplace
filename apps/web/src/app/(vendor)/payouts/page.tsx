@@ -72,7 +72,7 @@ export default function VendorPayoutsPage() {
                 <td className="p-4 text-coal/60 text-sm font-mono">TRF-{tx.id.padStart(8, '0')}</td>
                 <td className="p-4 text-coal font-bold text-right">₦{tx.amount.toLocaleString()}</td>
                 <td className="p-4 text-right">
-                  <Badge variant={tx.status === 'SUCCESSFUL' ? 'market-green' : 'ember'}>
+                  <Badge variant={tx.status === 'SUCCESSFUL' ? 'green' : 'ember'}>
                     {tx.status}
                   </Badge>
                 </td>

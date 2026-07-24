@@ -9,7 +9,7 @@ export default function VendorDashboardPage() {
     gmv: 0,
     totalOrders: 0,
     unitsSold: 0,
-    chartData: []
+    chartData: [] as Array<{ date: string; revenue: number }>
   });
   const [loading, setLoading] = useState(true);
 
@@ -87,10 +87,10 @@ export default function VendorDashboardPage() {
                   <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                     <XAxis dataKey="date" stroke="#999" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#999" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₦${value/1000}k`} />
+                    <YAxis stroke="#999" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: any) => `₦${value/1000}k`} />
                     <Tooltip 
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                      formatter={(value: any) => [`₦${value.toLocaleString()}`, 'Revenue']}
                     />
                     <Line type="monotone" dataKey="revenue" stroke="#E8642A" strokeWidth={3} dot={{ r: 4, fill: '#E8642A' }} activeDot={{ r: 6 }} />
                   </LineChart>
