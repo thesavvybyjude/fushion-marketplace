@@ -1,36 +1,19 @@
-import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { SearchService } from '../../services/search.service.js';
 
-const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
-  // GET /api/v1/admin/stats
+const approveProductSchema = z.object({
+  status: z.enum(['ACTIVE', 'REJECTED']),
+});
+
+async function adminPlugin(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
       onRequest: [fastify.requireAuth, fastify.requireRole('ADMIN')],
-      schema: {
-        summary: 'Get marketplace aggregate statistics',
-        response: {
-          200: z.object({
-            success: z.boolean(),
-            data: z.object({
-              totalSales: z.number(),
-              activeVendors: z.number(),
-              pendingProducts: z.number(),
-              totalOrders: z.number(),
-            })
-          })
-        }
-      }
     },
     async (_request: any, _reply: any) => {
-      // Aggregations
-      const [
-        totalSales,
-        activeVendors,
-        pendingProducts,
-        totalOrders
-      ] = await Promise.all([
+      const [totalSales, activeVendors, pendingProducts, totalOrders] = await Promise.all([
         fastify.prisma.order.aggregate({ _sum: { totalAmount: true }, where: { status: 'CONFIRMED' } }),
         fastify.prisma.vendor.count({ where: { status: 'ACTIVE' } }),
         fastify.prisma.product.count({ where: { status: 'PENDING_APPROVAL' } }),
@@ -44,19 +27,15 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
           activeVendors,
           pendingProducts,
           totalOrders,
-        }
+        },
       };
-    }
+    },
   );
 
-  // GET /api/v1/admin/products/pending
   fastify.get(
     '/products/pending',
     {
       onRequest: [fastify.requireAuth, fastify.requireRole('ADMIN')],
-      schema: {
-        summary: 'List products awaiting approval',
-      }
     },
     async (_request: any, _reply: any) => {
       const products = await fastify.prisma.product.findMany({
@@ -66,23 +45,17 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
       });
 
       return { success: true, data: products };
-    }
+    },
   );
 
-  // PATCH /api/v1/admin/products/:id/status
   fastify.patch(
     '/products/:id/status',
     {
       onRequest: [fastify.requireAuth, fastify.requireRole('ADMIN')],
-      schema: {
-        summary: 'Approve or reject a product',
-        params: z.object({ id: z.string().uuid() }),
-        body: z.object({ status: z.enum(['ACTIVE', 'REJECTED']) }),
-      }
     },
     async (request: any, _reply: any) => {
-      const { id } = request.params;
-      const { status } = request.body;
+      const { id } = request.params as { id: string };
+      const { status } = approveProductSchema.parse(request.body);
 
       const product = await fastify.prisma.product.update({
         where: { id },
@@ -102,8 +75,8 @@ const adminPlugin: FastifyPluginAsyncZod = async (fastify) => {
       }
 
       return { success: true, data: product };
-    }
+    },
   );
-};
+}
 
 export default adminPlugin;

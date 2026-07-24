@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -36,7 +37,7 @@ export async function buildApp() {
           : undefined,
     },
     genReqId: () => crypto.randomUUID(),
-  });
+  }).withTypeProvider<ZodTypeProvider>();
 
   // ─── Security ──────────────────────────────────────────
   await app.register(helmet, {
