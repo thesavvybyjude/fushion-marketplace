@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { SearchService } from '../../services/search.service.js';
 
 const approveProductSchema = z.object({
-  status: z.enum(['ACTIVE', 'REJECTED']),
+  status: z.enum(['ACTIVE', 'SUSPENDED']),
 });
 
 async function adminPlugin(fastify: FastifyInstance) {
